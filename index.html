@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  /* ---------------------------------------------------------
+     DESIGN TOKENS — change these to re-theme the whole page
+     --------------------------------------------------------- */
+  :root {
+    --bg: #0b0b0c;
+    --fg: #ececea;
+    --fg-muted: #8c8c8a;
+    --border: #2b2b2c;
+    --border-hover: #4d4d4d;
+    --border-open: #ececea;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100%;
+  }
+
+  body {
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 12vh 24px 10vh;
+  }
+
+  /* ---------------------------------------------------------
+     LAYOUT — the vertical stack of category tiles
+     --------------------------------------------------------- */
+  .interests {
+    width: 100%;
+    max-width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 44px;
+  }
+
+  .category {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ---------------------------------------------------------
+     THE TILE — this is the "1x1 image class" square button
+     --------------------------------------------------------- */
+  .tile {
+    position: relative;
+    width: clamp(150px, 40vw, 190px);
+    aspect-ratio: 1 / 1;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: border-color 0.2s ease;
+  }
+
+  .tile:hover { border-color: var(--border-hover); }
+
+  .tile:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 3px;
+  }
+
+  .category[data-open="true"] .tile {
+    border-color: var(--border-open);
+  }
+
+  /* the icon inside the square — swap this for a real <img> later, see notes below */
+  .tile-visual {
+    width: 42%;
+    height: 42%;
+    color: var(--fg-muted);
+    transition: color 0.2s ease;
+  }
+
+  .tile-visual svg { width: 100%; height: 100%; display: block; }
+
+  .category[data-open="true"] .tile-visual { color: var(--fg); }
+
+  /* small +/× indicator in the corner, shows it's interactive */
+  .tile-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 9px;
+    height: 9px;
+  }
+
+  .tile-indicator::before,
+  .tile-indicator::after {
+    content: "";
+    position: absolute;
+    background: var(--fg-muted);
+    transition: transform 0.25s ease, background 0.2s ease;
+  }
+
+  .tile-indicator::before {
+    top: 50%; left: 0;
+    width: 100%; height: 1px;
+    transform: translateY(-50%);
+  }
+
+  .tile-indicator::after {
+    left: 50%; top: 0;
+    height: 100%; width: 1px;
+    transform: translateX(-50%);
+  }
+
+  .category[data-open="true"] .tile-indicator::before,
+  .category[data-open="true"] .tile-indicator::after {
+    background: var(--fg);
+  }
+
+  .category[data-open="true"] .tile-indicator::after {
+    transform: translateX(-50%) rotate(90deg);
+    opacity: 0;
+  }
+
+  /* ---------------------------------------------------------
+     LABEL — the small text under each tile
+     --------------------------------------------------------- */
+  .tile-label {
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--fg-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    transition: color 0.2s ease;
+  }
+
+  .tile-label:hover,
+  .category[data-open="true"] .tile-label {
+    color: var(--fg);
+  }
+
+  .tile-label:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 3px;
+  }
+
+  /* ---------------------------------------------------------
+     DROPDOWN LIST — collapses/expands with no fixed height,
+     using the CSS grid-rows trick so it animates smoothly
+     --------------------------------------------------------- */
+  .collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+    width: 100%;
+  }
+
+  .category[data-open="true"] .collapse {
+    grid-template-rows: 1fr;
+  }
+
+  .collapse-inner { overflow: hidden; }
+
+  .tile-list {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    text-align: center;
+  }
+
+  .tile-list li {
+    position: relative;
+    font-size: 13px;
+    line-height: 1.9;
+    color: var(--fg-muted);
+    padding-left: 14px;
+  }
+
+  .tile-list li::before {
+    content: "–";
+    position: absolute;
+    left: 0;
+    color: var(--fg-muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .collapse, .tile, .tile-visual, .tile-label,
+    .tile-indicator::before, .tile-indicator::after {
+      transition: none;
+    }
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="interests">
+
+    <!-- ============ GAMES ============ -->
+    <section class="category" data-open="false">
+      <button class="tile" aria-expanded="false" aria-controls="games-list">
+        <span class="tile-indicator" aria-hidden="true"></span>
+        <span class="tile-visual" aria-hidden="true">
+          <img src="games.jpg" alt="gm">
+        </span>
+      </button>
+      <button class="tile-label" aria-expanded="false" aria-controls="games-list">games</button>
+      <div class="collapse">
+        <div class="collapse-inner">
+          <ul class="tile-list" id="games-list">
+            <li>All Pokemon [even certain fangames]</li>
+            <li>Any Hoyoverse game [HSR, GI, ZZZ, HI3] </li>
+            <li>Persona 3R/5R/5X/5S</li>
+            <li>Danganronpa [all besides UDG]</li>
+            <li>Metaphor: ReFantazio</li>
+            <li>FE:3H</li>
+            <li>Xenoblade Chronicles 3</li>
+            <li>FF7/FFX</li>
+            <li>Octopath Traveler</li>
+            <li>Cyberpunk 2077</li>
+            <li>DDLC</li>
+            <li>Titanfall 2</li>
+            <li>Overwatch</li>
+            <li>BTD6</li>
+            <li>GG:ST</li>
+            <li>MH:Wilds</li>
+            <li>The Hundred Line</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MANGA ============ -->
+    <section class="category" data-open="false">
+      <button class="tile" aria-expanded="false" aria-controls="manga-list">
+        <span class="tile-indicator" aria-hidden="true"></span>
+        <span class="tile-visual" aria-hidden="true">
+          <img src="manga.jpg" alt="mg">
+        </span>
+      </button>
+      <button class="tile-label" aria-expanded="false" aria-controls="manga-list">manga</button>
+      <div class="collapse">
+        <div class="collapse-inner">
+          <ul class="tile-list" id="manga-list">
+            <li>Oyasumi Punpun</li>
+            <li>Tokyo Ghoul + :Re</li>
+            <li>JJBA [up to part 9]</li>
+            <li>Takopi's OG Sin</li>
+            <li>Attack on Titan</li>
+            <li>Bleach</li>
+            <li>Naruto</li>
+            <li>One Piece</li>
+            <li>MHA</li>
+            <li>Blue Lock</li>
+            <li>Ao Ashi</li>
+            <li>Uzumaki</li>
+            <li>Battle Angel Alita</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ANIME ============ -->
+    <section class="category" data-open="false">
+      <button class="tile" aria-expanded="false" aria-controls="anime-list">
+        <span class="tile-indicator" aria-hidden="true"></span>
+        <span class="tile-visual" aria-hidden="true">
+          <img src="anime.jpg" alt="an">
+        </span>
+      </button>
+      <button class="tile-label" aria-expanded="false" aria-controls="anime-list">anime</button>
+      <div class="collapse">
+        <div class="collapse-inner">
+          <ul class="tile-list" id="anime-list">
+            <li>Your Lie in April</li>
+            <li>K-On!</li>
+            <li>Konosuba</li>
+            <li>Seraph of the End</li>
+            <li>Love is War</li>
+            <li>Gurren Lagann</li>
+            <li>IWTEYPancreas</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ============ HOBBIES ============ -->
+    <section class="category" data-open="false">
+      <button class="tile" aria-expanded="false" aria-controls="hobbies-list">
+        <span class="tile-indicator" aria-hidden="true"></span>
+        <span class="tile-visual" aria-hidden="true">
+          <img src="hobbies.jpg" alt="hb">
+        </span>
+      </button>
+      <button class="tile-label" aria-expanded="false" aria-controls="hobbies-list">hobbies</button>
+      <div class="collapse">
+        <div class="collapse-inner">
+          <ul class="tile-list" id="hobbies-list">
+            <li>Writing</li>
+            <li>Drawing</li>
+            <li>Keyboard modding</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+  // Every tile (image square) and its matching label toggle the same
+  // category open/closed. Clicking either one works.
+  document.querySelectorAll('.category').forEach(function (category) {
+    var triggers = category.querySelectorAll('.tile, .tile-label');
+
+    triggers.forEach(function (trigger) {
+      trigger.addEventListener('click', function () {
+        var isOpen = category.getAttribute('data-open') === 'true';
+        category.setAttribute('data-open', String(!isOpen));
+        triggers.forEach(function (t) {
+          t.setAttribute('aria-expanded', String(!isOpen));
+        });
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
