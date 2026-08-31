@@ -72,6 +72,7 @@
     align-items: center;
     justify-content: center;
     padding: 0;
+    overflow: hidden;
     transition: border-color 0.2s ease;
   }
 
@@ -86,25 +87,38 @@
     border-color: var(--border-open);
   }
 
-  /* the icon inside the square — swap this for a real <img> later, see notes below */
+  /* fills the whole square — icons stay centered via their own viewBox,
+     real photos get cropped to fill the box via object-fit below */
   .tile-visual {
-    width: 42%;
-    height: 42%;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
     color: var(--fg-muted);
     transition: color 0.2s ease;
   }
 
   .tile-visual svg { width: 100%; height: 100%; display: block; }
 
+  .tile-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
   .category[data-open="true"] .tile-visual { color: var(--fg); }
 
   /* small +/× indicator in the corner, shows it's interactive */
   .tile-indicator {
     position: absolute;
+    z-index: 2;
     top: 10px;
     right: 10px;
     width: 9px;
     height: 9px;
+    border-radius: 50%;
+    box-shadow: 0 0 0 7px rgba(11, 11, 12, 0.55);
   }
 
   .tile-indicator::before,
